@@ -2,7 +2,6 @@ import os
 import random
 import re
 import sys
-import pdb
 
 DAMPING = 0.85
 SAMPLES = 10000
@@ -59,7 +58,9 @@ def transition_model(corpus, page, damping_factor):
     a link at random chosen from all pages in the corpus.
     """
     links = corpus[page]
-    probability = damping_factor/len(links)
+    num_links = len(links)
+    if num_links == 0: num_links = len(corpus)
+    probability = damping_factor / num_links
     pd = dict.fromkeys(corpus, (1 - damping_factor) / len(corpus))
     for link in links:
         pd[link] += probability
@@ -76,6 +77,9 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
+    def normalize(v):
+        return (v / n)
+
     pages = list(corpus.keys())
     visits = dict.fromkeys(pages, 0)
     page = random.choice(pages)
@@ -90,8 +94,6 @@ def sample_pagerank(corpus, damping_factor, n):
     visits = {k: normalize(v) for k,v in visits.items()}
     return visits
 
-def normalize(n):
-    return (n / SAMPLES)
 
 def iterate_pagerank(corpus, damping_factor):
     """
@@ -121,7 +123,7 @@ def iterate_pagerank(corpus, damping_factor):
         return total
 
 
-    def accurate_enough(current_pr, next_pr):
+    def max_accuracy_reached(current_pr, next_pr):
         for page in current_pr:
             if new_pr[page] - current_pr[page] > 0.001:
                 return False
@@ -140,7 +142,7 @@ def iterate_pagerank(corpus, damping_factor):
                 (d * summation_over(incoming_links_for(page)))
             )
 
-        if accurate_enough(current_pr, new_pr):
+        if max_accuracy_reached(current_pr, new_pr):
             break
 
         current_pr = new_pr
