@@ -16,10 +16,10 @@ def main():
     print(f"PageRank Results from Sampling (n = {SAMPLES})")
     for page in sorted(ranks):
         print(f"  {page}: {ranks[page]:.4f}")
-    # ranks = iterate_pagerank(corpus, DAMPING)
-    # print(f"PageRank Results from Iteration")
-    # for page in sorted(ranks):
-    #     print(f"  {page}: {ranks[page]:.4f}")
+    ranks = iterate_pagerank(corpus, DAMPING)
+    print(f"PageRank Results from Iteration")
+    for page in sorted(ranks):
+        print(f"  {page}: {ranks[page]:.4f}")
 
 
 def crawl(directory):
@@ -102,7 +102,51 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    def incoming_links_for(page_r):
+        links = set(
+            page_i for page_i in list(corpus.keys())
+            if page_r in corpus[page_i]
+        )
+
+        return links
+
+
+    def summation_over(incoming_links):
+        total = 0
+        for incoming_link in incoming_links:
+            num_links = len(corpus[incoming_link])
+            if num_links == 0: num_links = N
+            total += current_pr[incoming_link] / num_links
+
+        return total
+
+
+    def accurate_enough(current_pr, next_pr):
+        for page in current_pr:
+            if new_pr[page] - current_pr[page] > 0.001:
+                return False
+        return True
+
+
+    N = len(corpus)
+    d = damping_factor
+    current_pr = dict.fromkeys(corpus, 1 / N)
+
+    while True:
+        new_pr = current_pr.copy()
+        for page in new_pr:
+            new_pr[page] = (
+                ((1 - d) / N) +
+                (d * summation_over(incoming_links_for(page)))
+            )
+
+        if accurate_enough(current_pr, new_pr):
+            break
+
+        current_pr = new_pr
+
+    return new_pr
+
 
 
 if __name__ == "__main__":
