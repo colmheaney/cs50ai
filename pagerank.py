@@ -2,6 +2,7 @@ import os
 import random
 import re
 import sys
+import pdb
 
 DAMPING = 0.85
 SAMPLES = 10000
@@ -15,10 +16,10 @@ def main():
     print(f"PageRank Results from Sampling (n = {SAMPLES})")
     for page in sorted(ranks):
         print(f"  {page}: {ranks[page]:.4f}")
-    ranks = iterate_pagerank(corpus, DAMPING)
-    print(f"PageRank Results from Iteration")
-    for page in sorted(ranks):
-        print(f"  {page}: {ranks[page]:.4f}")
+    # ranks = iterate_pagerank(corpus, DAMPING)
+    # print(f"PageRank Results from Iteration")
+    # for page in sorted(ranks):
+    #     print(f"  {page}: {ranks[page]:.4f}")
 
 
 def crawl(directory):
@@ -57,7 +58,13 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
-    raise NotImplementedError
+    links = corpus[page]
+    probability = damping_factor/len(links)
+    pd = dict.fromkeys(corpus, (1 - damping_factor) / len(corpus))
+    for link in links:
+        pd[link] += probability
+
+    return pd
 
 
 def sample_pagerank(corpus, damping_factor, n):
@@ -69,8 +76,22 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    pages = list(corpus.keys())
+    visits = dict.fromkeys(pages, 0)
+    page = random.choice(pages)
+    visits[page] += 1
+    for i in range(n - 1):
+        tm = transition_model(corpus, page, damping_factor)
+        weights = list(tm.values())
+        pages = list(tm.keys())
+        page = random.choices(pages, weights=weights, k=1)[0]
+        visits[page] += 1
 
+    visits = {k: normalize(v) for k,v in visits.items()}
+    return visits
+
+def normalize(n):
+    return (n / SAMPLES)
 
 def iterate_pagerank(corpus, damping_factor):
     """
