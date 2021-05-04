@@ -92,6 +92,7 @@ def sample_pagerank(corpus, damping_factor, n):
         visits[page] += 1
 
     visits = {k: normalize(v) for k,v in visits.items()}
+    print(sum(visits.values()))
     return visits
 
 
@@ -104,50 +105,36 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    def incoming_links_for(page_r):
-        links = set(
-            page_i for page_i in list(corpus.keys())
-            if page_r in corpus[page_i]
-        )
-
-        return links
-
-
-    def summation_over(incoming_links):
+    def summation_for(page_r):
         total = 0
-        for incoming_link in incoming_links:
-            num_links = len(corpus[incoming_link])
-            if num_links == 0: num_links = N
-            total += current_pr[incoming_link] / num_links
-
+        for page_i in corpus:
+            if page_r in corpus[page_i]:
+                total += pagerank[page_i] / len(corpus[page_i])
+            if not corpus[page_i]:
+                total += pagerank[page_i] / N
         return total
 
 
-    def max_accuracy_reached(current_pr, next_pr):
-        for page in current_pr:
-            if new_pr[page] - current_pr[page] > 0.001:
+    def max_accuracy_reached():
+        for page in pagerank:
+            if newrank[page] - pagerank[page] > 0.001:
                 return False
         return True
 
 
     N = len(corpus)
-    d = damping_factor
-    current_pr = dict.fromkeys(corpus, 1 / N)
-
+    pagerank = dict.fromkeys(corpus, 1 / N)
+    newrank = dict()
     while True:
-        new_pr = current_pr.copy()
-        for page in new_pr:
-            new_pr[page] = (
-                ((1 - d) / N) +
-                (d * summation_over(incoming_links_for(page)))
-            )
+        for page_r in pagerank:
+            newrank[page_r] = ((1 - damping_factor) / N) + (damping_factor * summation_for(page_r))
 
-        if max_accuracy_reached(current_pr, new_pr):
+        if max_accuracy_reached():
             break
 
-        current_pr = new_pr
+        pagerank = newrank.copy()
 
-    return new_pr
+    return pagerank
 
 
 
