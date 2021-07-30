@@ -92,8 +92,7 @@ class CrosswordCreator():
         """
         self.enforce_node_consistency()
         self.ac3()
-        pdb.set_trace()
-        # return self.backtrack(dict())
+        return self.backtrack(dict())
 
     def enforce_node_consistency(self):
         """
@@ -107,7 +106,6 @@ class CrosswordCreator():
             for value in values:
                 if domain[0].length != len(value):
                     self.domains[domain[0]].remove(value)
-        
 
     def revise(self, x, y):
         """
@@ -145,7 +143,6 @@ class CrosswordCreator():
 
         return revised
 
-
     def ac3(self, arcs=None):
         """
         Update `self.domains` such that each variable is arc consistent.
@@ -178,44 +175,38 @@ class CrosswordCreator():
                 for Z in self.crossword.neighbors(X) - {Y}:
                     arcs.append((Z, X))
 
-        pdb.set_trace()
-        print(self.domains)
-
-
     def assignment_complete(self, assignment):
         """
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
-        result = [ k for k,v in assignment.items() if v is None ]
-        return len(result) == 0
-
+        result = [ k for k,v in assignment.items() if v is not None ]
+        return len(result) == len(self.crossword.variables)
 
     def consistent(self, assignment):
         """
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
+
+        # Check for duplicates
         values = assignment.values()
         if len(values) != len(set(values)):
             return False
         
-        for thing in assignment.items():
-            variable = thing[0]
-            value = thing[1]
+        for item in assignment.items():
+            variable = item[0]
+            value = item[1]
             if variable.length != len(value):
                 return False
 
-        for thing in assignment.items():
-            variable = thing[0]
             neighbors = self.crossword.neighbors(variable)
             for neighbor in neighbors:
                 overlap = self.crossword.overlaps[variable, neighbor]
-                if variable[overlap[0]] != variable[overlap[1]]:
+                if value[overlap[0]] != value[overlap[1]]:
                     return False
 
         return True
-
 
     def order_domain_values(self, var, assignment):
         """
@@ -234,8 +225,9 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        result = [ k for k,v in assignment.items() if v is None ]
-        return result[0]
+        assignment_without_nones = { k:v for k,v in assignment.items() if v is not None }
+        remaining = self.crossword.variables - set(assignment_without_nones)
+        return remaining.pop()
 
     def backtrack(self, assignment):
         """
@@ -245,8 +237,30 @@ class CrosswordCreator():
         `assignment` is a mapping from variables (keys) to words (values).
 
         If no assignment is possible, return None.
+
+        function BACKTRACK(assignment):
+            if assignment complete: return assignment
+            var = SELECT-UNASSIGNED-VAR(assignment)
+            for value in DOMAIN-VALUE(var, assignment)
+            if value consistent with assignment:
+                add { var = value } to assignment
+                result = BACKTRACK(assignment)
+                if result != failure: return result
+            remove { var = value } from assignment
+        return failure
         """
-        raise NotImplementedError
+        # pdb.set_trace()
+        if self.assignment_complete(assignment):
+            return assignment
+        var = self.select_unassigned_variable(assignment)
+        for value in self.order_domain_values(var, assignment):
+            if self.consistent(assignment):
+                assignment[var] = value
+                result = self.backtrack(assignment)
+                if result: 
+                    return result
+            assignment[var] = None
+        return None
 
 
 def main():
