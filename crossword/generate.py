@@ -178,6 +178,7 @@ class CrosswordCreator():
                 for Z in self.crossword.neighbors(X) - {Y}:
                     arcs.append((Z, X))
 
+        pdb.set_trace()
         print(self.domains)
 
     def assignment_complete(self, assignment):
@@ -185,7 +186,9 @@ class CrosswordCreator():
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
-        raise NotImplementedError
+        result = [ k for k,v in assignment.items() if v is None ]
+        return len(result) == 0
+
 
     def consistent(self, assignment):
         """
