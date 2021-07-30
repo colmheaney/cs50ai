@@ -175,13 +175,14 @@ class CrosswordCreator():
                 for Z in self.crossword.neighbors(X) - {Y}:
                     arcs.append((Z, X))
 
+            return True
+
     def assignment_complete(self, assignment):
         """
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
-        result = [ k for k,v in assignment.items() if v is not None ]
-        return len(result) == len(self.crossword.variables)
+        return len(assignment) == len(self.crossword.variables)
 
     def consistent(self, assignment):
         """
@@ -197,25 +198,29 @@ class CrosswordCreator():
         for item in assignment.items():
             variable = item[0]
             value = item[1]
+            
+            # Check lengths
             if variable.length != len(value):
                 return False
 
+            # Check overlaps are valid
             neighbors = self.crossword.neighbors(variable)
             for neighbor in neighbors:
                 overlap = self.crossword.overlaps[variable, neighbor]
-                if value[overlap[0]] != value[overlap[1]]:
-                    return False
+                if neighbor in assignment:
+                    if value[overlap[0]] != assignment[neighbor][overlap[1]]:
+                        return False
 
         return True
 
-    def order_domain_values(self, var, assignment):
+    def order_domain_values(self, variable, assignment):
         """
         Return a list of values in the domain of `var`, in order by
         the number of values they rule out for neighboring variables.
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        return sorted(self.domains[var])
+        return sorted(self.domains[variable])
 
     def select_unassigned_variable(self, assignment):
         """
@@ -225,8 +230,7 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        assignment_without_nones = { k:v for k,v in assignment.items() if v is not None }
-        remaining = self.crossword.variables - set(assignment_without_nones)
+        remaining = self.crossword.variables - set(assignment)
         return remaining.pop()
 
     def backtrack(self, assignment):
@@ -249,17 +253,23 @@ class CrosswordCreator():
             remove { var = value } from assignment
         return failure
         """
-        # pdb.set_trace()
         if self.assignment_complete(assignment):
             return assignment
-        var = self.select_unassigned_variable(assignment)
-        for value in self.order_domain_values(var, assignment):
+        variable = self.select_unassigned_variable(assignment)
+        for value in self.order_domain_values(variable, assignment):
+            assignment[variable] = value
+
+            # neighbors = self.crossword.neighbors(variable)
+            # arcs = []
+            # for neighbor in neighbors:
+            #     arcs.append((neighbor, variable))
+            # self.ac3(arcs=arcs)
+
             if self.consistent(assignment):
-                assignment[var] = value
                 result = self.backtrack(assignment)
                 if result: 
                     return result
-            assignment[var] = None
+            del assignment[variable]
         return None
 
 
