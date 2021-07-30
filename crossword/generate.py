@@ -92,7 +92,7 @@ class CrosswordCreator():
         """
         self.enforce_node_consistency()
         # self.revise(Variable(i=0,j=1,direction='down',length=5), Variable(i=0,j=1,direction='across',length=3))
-        # self.ac3()
+        self.ac3()
         # return self.backtrack(dict())
 
     def enforce_node_consistency(self):
@@ -120,9 +120,9 @@ class CrosswordCreator():
         """
         overlaps = self.crossword.overlaps[x,y]
 
-        revision = False
+        revised = False
         if overlaps is None:
-            return revision
+            return revised
 
         var_x_index = overlaps[0]
         var_y_index = overlaps[1]
@@ -141,9 +141,9 @@ class CrosswordCreator():
 
             if not match_found:
                 self.domains[x].remove(x_value)
-                revision = True
+                revised = True
 
-        return revision
+        return revised
 
 
     def ac3(self, arcs=None):
@@ -154,8 +154,31 @@ class CrosswordCreator():
 
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
+
+        queue = all arcs in csp
+        while queue not empty
+        (X,Y) = DEQUEUE(queue)
+        if REVISE(csp, X,Y):
+            if size of X.domain == 0:
+                return False
+            for each Z in X.neighbors - {Y}:
+                ENQUEUE(queue, (Z,X))
+        return True
         """
-        raise NotImplementedError
+        if arcs is None:
+            arcs = list({ k:v for k,v in self.crossword.overlaps.items() if v is not None }.keys())
+
+        while arcs:
+            arc = arcs.pop(0)
+            X = arc[0]
+            Y = arc[1]
+            if self.revise(X, Y):
+                if self.domains[X] == 0:
+                    return False
+                for Z in self.crossword.neighbors(X) - {Y}:
+                    arcs.append((Z, X))
+
+        print(self.domains)
 
     def assignment_complete(self, assignment):
         """
