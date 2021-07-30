@@ -91,8 +91,8 @@ class CrosswordCreator():
         Enforce node and arc consistency, and then solve the CSP.
         """
         self.enforce_node_consistency()
-        # self.revise(Variable(i=0,j=1,direction='down',length=5), Variable(i=0,j=1,direction='across',length=3))
         self.ac3()
+        pdb.set_trace()
         # return self.backtrack(dict())
 
     def enforce_node_consistency(self):
@@ -181,6 +181,7 @@ class CrosswordCreator():
         pdb.set_trace()
         print(self.domains)
 
+
     def assignment_complete(self, assignment):
         """
         Return True if `assignment` is complete (i.e., assigns a value to each
@@ -195,7 +196,26 @@ class CrosswordCreator():
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
-        raise NotImplementedError
+        values = assignment.values()
+        if len(values) != len(set(values)):
+            return False
+        
+        for thing in assignment.items():
+            variable = thing[0]
+            value = thing[1]
+            if variable.length != len(value):
+                return False
+
+        for thing in assignment.items():
+            variable = thing[0]
+            neighbors = self.crossword.neighbors(variable)
+            for neighbor in neighbors:
+                overlap = self.crossword.overlaps[variable, neighbor]
+                if variable[overlap[0]] != variable[overlap[1]]:
+                    return False
+
+        return True
+
 
     def order_domain_values(self, var, assignment):
         """
@@ -204,7 +224,7 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        raise NotImplementedError
+        return sorted(self.domains[var])
 
     def select_unassigned_variable(self, assignment):
         """
@@ -214,7 +234,8 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        raise NotImplementedError
+        result = [ k for k,v in assignment.items() if v is None ]
+        return result[0]
 
     def backtrack(self, assignment):
         """
