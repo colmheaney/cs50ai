@@ -261,8 +261,21 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
+        def sort_mrv(variable):
+            return len(self.domains[variable])
+
+        def sort_degree(variable):
+            return len(self.crossword.neighbors(variable))
+
+        def tie_exists(first, second):
+            return len(self.domains[first]) == len(self.domains[second])
+
         remaining = self.crossword.variables - set(assignment)
-        return remaining.pop()
+        remaining = sorted(remaining, key=sort_mrv)
+        if len(remaining) > 1 and tie_exists(remaining[0], remaining[1]):
+            remaining = sorted(remaining[0:2], key=sort_degree, reverse=True)
+
+        return remaining.pop(0)
 
     def backtrack(self, assignment):
         """
