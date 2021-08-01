@@ -267,15 +267,19 @@ class CrosswordCreator():
         def sort_degree(variable):
             return len(self.crossword.neighbors(variable))
 
-        def tie_exists(first, second):
-            return len(self.domains[first]) == len(self.domains[second])
+        def filter_mrv(variable):
+            if len(self.domains[variable]) == smallest_domain:
+                return True
+
+            return False
 
         remaining = self.crossword.variables - set(assignment)
         remaining = sorted(remaining, key=sort_mrv)
-        if len(remaining) > 1 and tie_exists(remaining[0], remaining[1]):
-            remaining = sorted(remaining[0:2], key=sort_degree, reverse=True)
+        smallest_domain = len(self.domains[remaining[0]])
+        remaining = filter(filter_mrv, remaining)
+        remaining = sorted(remaining, key=sort_degree, reverse=True)
 
-        return remaining.pop(0)
+        return remaining[0]
 
     def backtrack(self, assignment):
         """
@@ -299,21 +303,17 @@ class CrosswordCreator():
         """
         if self.assignment_complete(assignment):
             return assignment
+
         variable = self.select_unassigned_variable(assignment)
         for value in self.order_domain_values(variable, assignment):
             assignment[variable] = value
-
-            # neighbors = self.crossword.neighbors(variable)
-            # arcs = []
-            # for neighbor in neighbors:
-            #     arcs.append((neighbor, variable))
-            # self.ac3(arcs=arcs)
 
             if self.consistent(assignment):
                 result = self.backtrack(assignment)
                 if result: 
                     return result
             del assignment[variable]
+
         return None
 
 
