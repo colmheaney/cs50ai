@@ -261,8 +261,25 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
+        def sort_mrv(variable):
+            return len(self.domains[variable])
+
+        def sort_degree(variable):
+            return len(self.crossword.neighbors(variable))
+
+        def filter_mrv(variable):
+            if len(self.domains[variable]) == smallest_domain:
+                return True
+
+            return False
+
         remaining = self.crossword.variables - set(assignment)
-        return remaining.pop()
+        remaining = sorted(remaining, key=sort_mrv)
+        smallest_domain = len(self.domains[remaining[0]])
+        remaining = filter(filter_mrv, remaining)
+        remaining = sorted(remaining, key=sort_degree, reverse=True)
+
+        return remaining[0]
 
     def backtrack(self, assignment):
         """
@@ -286,21 +303,17 @@ class CrosswordCreator():
         """
         if self.assignment_complete(assignment):
             return assignment
+
         variable = self.select_unassigned_variable(assignment)
         for value in self.order_domain_values(variable, assignment):
             assignment[variable] = value
-
-            # neighbors = self.crossword.neighbors(variable)
-            # arcs = []
-            # for neighbor in neighbors:
-            #     arcs.append((neighbor, variable))
-            # self.ac3(arcs=arcs)
 
             if self.consistent(assignment):
                 result = self.backtrack(assignment)
                 if result: 
                     return result
             del assignment[variable]
+
         return None
 
 
