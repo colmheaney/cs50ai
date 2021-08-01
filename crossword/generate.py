@@ -219,8 +219,39 @@ class CrosswordCreator():
         the number of values they rule out for neighboring variables.
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
+
+        get values of var
+        get neighbors of var
+        filter out already assigned neighbors
+
+        func(value, neighbors, variable)
+            n = 0
+            for each neighbor of var:
+                get overlap between neighbor and var
+                for each value of neighbor:
+                    get char at index of overlap for var
+                    get char at index of overlap for neighbor
+                    if != increment n by 1
+
+            return n
         """
-        return sorted(self.domains[variable])
+        def sort_by_lcv(value, neighbors, variable):
+            n = 0
+            for neighbor in neighbors:
+                overlap = self.crossword.overlaps[variable, neighbor]
+                neighbor_values = self.domains[neighbor]
+                for neighbor_value in neighbor_values:
+                    if value[overlap[0]] != neighbor_value[overlap[1]]:
+                        n += 1
+        
+            return n
+
+        values = self.domains[variable]
+        neighbors = self.crossword.neighbors(variable)
+        assignment_copy = assignment.copy()
+        unassigned_neighbors = neighbors - set(assignment_copy)
+        return sorted(values, key=lambda value: sort_by_lcv(value, unassigned_neighbors, variable))
+
 
     def select_unassigned_variable(self, assignment):
         """
