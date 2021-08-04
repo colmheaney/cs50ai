@@ -305,14 +305,20 @@ class CrosswordCreator():
             return assignment
 
         variable = self.select_unassigned_variable(assignment)
-        for value in self.order_domain_values(variable, assignment):
-            assignment[variable] = value
+        neighbors = self.crossword.neighbors(variable)
+        arcs = [(variable, neighbor) for neighbor in neighbors]
 
-            if self.consistent(assignment):
-                result = self.backtrack(assignment)
+        for value in self.order_domain_values(variable, assignment):
+            assignment_copy = assignment.copy()
+            domains_backup = self.domains.copy()
+            assignment_copy[variable] = value
+
+            if self.consistent(assignment_copy) and self.ac3(arcs=arcs):
+                result = self.backtrack(assignment_copy)
                 if result: 
                     return result
-            del assignment[variable]
+            # del assignment_copy[variable]
+            self.domains = domains_backup
 
         return None
 
