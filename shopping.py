@@ -81,7 +81,7 @@ def load_data(filename):
         row[12] = int(row[12])
         row[13] = int(row[13])
         row[14] = int(row[14])
-        row[15] = 1 if row[16] == 'Returning_Visitor' else 0
+        row[15] = 1 if row[15] == 'Returning_Visitor' else 0
         row[16] = 1 if row[16] == 'TRUE' else 0
         row[17] = 1 if row[17] == 'TRUE' else 0
         return row
