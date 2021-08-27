@@ -101,7 +101,10 @@ class NimAI():
         Return the Q-value for the state `state` and the action `action`.
         If no Q-value exists yet in `self.q`, return 0.
         """
-        raise NotImplementedError
+        if (tuple(state), action) in self.q:
+            return self.q[(tuple(state), action)]
+        else:
+            return 0
 
     def update_q_value(self, state, action, old_q, reward, future_rewards):
         """
@@ -118,7 +121,9 @@ class NimAI():
         `alpha` is the learning rate, and `new value estimate`
         is the sum of the current reward and estimated future rewards.
         """
-        raise NotImplementedError
+        new_value_estimate = reward + future_rewards
+        new_q = old_q + self.alpha * (new_value_estimate - old_q)
+        self.q[tuple(state), action] = new_q
 
     def best_future_reward(self, state):
         """
@@ -130,7 +135,19 @@ class NimAI():
         Q-value in `self.q`. If there are no available actions in
         `state`, return 0.
         """
-        raise NotImplementedError
+        available_actions = Nim.available_actions(state)
+
+        max_reward = 0
+        for action in available_actions:
+            if (tuple(state), action) in self.q:
+                reward = self.q[(tuple(state), action)]
+            else:
+                reward = 0
+
+            if reward > max_reward:
+                max_reward = reward
+
+        return max_reward
 
     def choose_action(self, state, epsilon=True):
         """
@@ -147,7 +164,35 @@ class NimAI():
         If multiple actions have the same Q-value, any of those
         options is an acceptable return value.
         """
-        raise NotImplementedError
+        def best_action():
+            max_reward = 0
+            best_action = None
+            for action in available_actions:
+                if (tuple(state), action) in self.q:
+                    reward = self.q[tuple(state), action]
+                else:
+                    reward = 0
+
+                if reward >= max_reward:
+                    max_reward = reward
+                    best_action = action       
+
+            return best_action
+
+
+        available_actions = Nim.available_actions(state)
+        if len(available_actions) == 1:
+            return available_actions.pop()
+
+        if not epsilon:
+            return best_action()
+        else:
+            random_action = random.choice(tuple(available_actions))
+            return random.choices(
+                (best_action(), random_action),
+                weights=(1-self.epsilon,self.epsilon),
+                k=1
+            )[0]
 
 
 def train(n):
