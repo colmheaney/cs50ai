@@ -1,6 +1,5 @@
 import nltk
 import sys
-import pdb
 
 TERMINALS = """
 Adj -> "country" | "dreadful" | "enigmatical" | "little" | "moist" | "red"
@@ -19,7 +18,7 @@ NONTERMINALS = """
 
 S -> NP VP
 
-NP -> N | Det N | Det Adj NP | NP NP | Adj NP | P NP
+NP -> N | Det N | Det Adj N | NP NP | Adj NP | P NP | Det Adj Adj Adj N
 
 VP -> V | VP NP | Conj | Adv | VP VP
 """
