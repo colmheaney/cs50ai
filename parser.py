@@ -14,13 +14,18 @@ V -> "arrived" | "came" | "chuckled" | "had" | "lit" | "said" | "sat"
 V -> "smiled" | "tell" | "were"
 """
 
+# NONTERMINALS = """
+# S -> NP VP | S Conj S
+# NP -> N | Det N | Det Adj NP | NP NP | Adj NP | P NP
+# VP -> V | VP NP | Conj | Adv | VP VP
+# """
+
 NONTERMINALS = """
-
-S -> NP VP
-
-NP -> N | Det N | Det Adj N | NP NP | Adj NP | P NP | Det Adj Adj Adj N
-
-VP -> V | VP NP | Conj | Adv | VP VP
+S -> NP VP | S Conj S | S Conj VP
+NP -> Det Nom | N 
+Nom -> Adj Nom | N
+VP -> V | V NP | V NP PP | V PP | Adv VP | VP Adv
+PP -> P NP | PP PP
 """
 
 grammar = nltk.CFG.fromstring(NONTERMINALS + TERMINALS)
@@ -75,7 +80,6 @@ def preprocess(sentence):
     words = nltk.word_tokenize(sentence.lower())
     return list(filter(contains_letter, words))
 
-
 def np_chunk(tree):
     """
     Return a list of all noun phrase chunks in the sentence tree.
@@ -84,9 +88,9 @@ def np_chunk(tree):
     noun phrases as subtrees.
     """
     chunks = []
-    for s in tree.subtrees(lambda t: t.height() == 3):
-        if s.label() == 'NP':
-            chunks.append(s)
+    for subtree in tree.subtrees():
+        if subtree.label() == 'NP':
+            chunks.append(subtree)
 
     return chunks
 
