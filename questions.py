@@ -70,8 +70,8 @@ def tokenize(document):
     stop_words = nltk.corpus.stopwords.words("english")
 
     words = nltk.word_tokenize(document.lower())
-    words = [w for w in words if w not in string.punctuation and w not in stop_words]
-    # words = [w for w in words if w not in stop_words]
+    words = [w for w in words if w not in string.punctuation]
+    words = [w for w in words if w not in stop_words]
 
     return words
 
