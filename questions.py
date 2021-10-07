@@ -88,7 +88,7 @@ def compute_idfs(documents):
     document_names = set(documents)
     for document_name in document_names:
         document_words = documents[document_name]
-        for document_word in document_words:
+        for document_word in set(document_words):
             if document_word in idf_map:
                 idf_map[document_word] += 1
             else:
@@ -121,7 +121,7 @@ def top_files(query, files, idfs, n):
         tf_idfs[file] = tf_idf
 
     sorted_docs = list(dict(sorted(tf_idfs.items(), key=lambda item: item[1])).keys())
-    return sorted_docs[:n]
+    return sorted_docs[-n:]
 
 
 def top_sentences(query, sentences, idfs, n):
