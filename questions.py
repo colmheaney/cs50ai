@@ -139,7 +139,7 @@ def top_sentences(query, sentences, idfs, n):
         for query_word in query:
             if query_word in sentences[sentence]:
                 idf_sum += idfs[query_word]
-                num_of_sentence_words_in_query += 1
+                num_of_sentence_words_in_query += sentences[sentence].count(query_word)
         
         query_word_density = num_of_sentence_words_in_query / len(sentences[sentence])
         idf_sentence_scores[sentence] = (idf_sum, query_word_density)
